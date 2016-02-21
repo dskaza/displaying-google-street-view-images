@@ -1,0 +1,78 @@
+<!-- 
+http://www.raymondcamden.com/2016/02/13/displaying-google-street-view-images/?utm_content=buffer3b90e&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer
+
+His answer describes using StreetViewService of the Google Maps API. 
+If you follow the link to the Google API example you’ll see that you can request a Street View result and check a result value to see 
+if data was available. I took that initial example and integrated it into a dynamic example like he was using originally. 
+Here is the updated code. As a note - this script expects URL parameters for a location that get translated into longitude 
+and latitude by a back end service.
+
+https://google-developers.appspot.com/maps/documentation/javascript/examples/streetview-service
+
+ -->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width">
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script>
+	function getUrlVars() {
+	    var vars = {};
+	    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+	        vars[key] = value;
+	    });
+	    return vars;
+	}
+
+
+	//credit: http://stackoverflow.com/a/13568401/52160
+	function initMap() {
+	    console.log('initMap called');
+	    var parts = getUrlVars();
+
+	    $.get('data/getlatlng.cfm?parcelid='+parts['parcelid']+'&geoid='+parts['GEOID'], function(res) {
+
+	        var sv = new google.maps.StreetViewService();
+	        
+	        panorama = new google.maps.StreetViewPanorama(document.getElementById('pano'));
+	        
+	        sv.getPanorama({location: {lat:res.lat, lng:res.lng}, radius: 50}, processSVData)
+
+	    },'json');
+
+	    
+	}
+
+	function processSVData(data, status) {
+	  if (status === google.maps.StreetViewStatus.OK) {
+	    console.log('ok');
+	    $('#pano').show();
+	    panorama.setPano(data.location.pano);
+	    
+	    panorama.setPov({
+	        heading: 270,
+	        pitch: 0
+	    });
+	    
+	    panorama.setVisible(true);
+
+	  } else {
+	    console.error('Street View data not found for this location.');
+	    $('#pano').hide();
+	  }
+	}
+	</script>
+</head>
+    
+<body>
+	<div id="pano" style="width: 550px; height: 350px;"></div>
+
+
+	<script async defer
+	    src="https://maps.googleapis.com/maps/api/js?key=somekey&callback=initMap">
+	</script>
+</body>
+</html>
